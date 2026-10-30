@@ -17,6 +17,7 @@ import re
 import sys
 import urllib.parse
 import urllib.request
+from evidence import candidate_entries
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "site" / "data"
@@ -109,8 +110,11 @@ def update_data(offline=False):
     current = json.loads((DATA / "index.json").read_text(encoding="utf8"))
     cached_docs = {d["id"]: d for d in current.get("documents", [])}
     cached_snips = current.get("snippets", [])
+    prior_evidence_path = DATA / "evidence.json"
+    cached_evidence = json.loads(prior_evidence_path.read_text(encoding="utf8")).get("records", []) if prior_evidence_path.exists() else []
     docs = []
     out = []
+    evidence = []
     warns = []
     stamp = dt.datetime.now(dt.timezone.utc).isoformat()
     if offline:
@@ -131,6 +135,7 @@ def update_data(offline=False):
                    "page_count": len(pages), "status": "downloaded_and_indexed"}
             docs.append(row)
             for page, text in pages:
+                evidence.extend(candidate_entries(text, source, page, max_entries=10))
                 for excerpt in snippets(text):
                     out.append({"doc_id": source["id"], "title": source["title"],
                                 "jurisdiction": source["jurisdiction"], "page": page,
@@ -146,6 +151,7 @@ def update_data(offline=False):
                 prior["last_error"] = str(exc)
                 docs.append(prior)
                 out += [v for v in cached_snips if v["doc_id"] == source["id"]]
+                evidence += [v for v in cached_evidence if v["doc_id"] == source["id"]]
             else:
                 docs.append({**source, "status": "unavailable", "last_error": str(exc)})
     status = {"generated_at": stamp, "source_count": len(docs),
@@ -153,7 +159,9 @@ def update_data(offline=False):
     (DATA / "index.json").write_text(json.dumps({"generated_at": stamp, "documents": docs,
         "snippets": out, "warnings": warns}, ensure_ascii=False, separators=(",", ":")), encoding="utf8")
     (DATA / "status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf8")
-    print(f"Generated {len(out)} document navigation snippets; status={status['status']}")
+    (DATA / "evidence.json").write_text(json.dumps({"generated_at": stamp, "records": evidence,
+        "warning": "Unverified search candidates from official documents; not legally applicable standards or complete results."}, ensure_ascii=False, separators=(",", ":")), encoding="utf8")
+    print(f"Generated {len(out)} navigation snippets and {len(evidence)} unverified candidate passages; status={status['status']}")
 
 
 if __name__ == "__main__":

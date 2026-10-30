@@ -51,14 +51,16 @@
       "jurisdiction": "toronto",
       "type": "html",
       "title": "Toronto Chapter 40.10 – Commercial Residential",
-      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter40_10.htm"
+      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter40_10.htm",
+      "zone_scope": "CR"
     },
     {
       "id": "toronto-cr-general",
       "jurisdiction": "toronto",
       "type": "html",
       "title": "Toronto Chapter 40.5 – Commercial Residential category",
-      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter40.htm"
+      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter40.htm",
+      "zone_scope": "CR"
     },
     {
       "id": "toronto-parking",
@@ -72,14 +74,16 @@
       "jurisdiction": "toronto",
       "type": "html",
       "title": "Toronto Chapter 900.11 – CR exceptions",
-      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter900_11.htm"
+      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter900_11.htm",
+      "zone_scope": "CR"
     },
     {
       "id": "toronto-cr531-amendment",
       "jurisdiction": "toronto",
       "type": "pdf",
       "title": "Toronto By-law 595-2022 – CR 531 and related exceptions",
-      "url": "https://www.toronto.ca/legdocs/bylaws/2022/law0595.pdf"
+      "url": "https://www.toronto.ca/legdocs/bylaws/2022/law0595.pdf",
+      "zone_scope": "CR"
     },
     {
       "id": "ontario-obc-compendium",
@@ -101,6 +105,30 @@
       "type": "html",
       "title": "Current Ontario Regulation 163/24 — Building Code (e-Laws)",
       "url": "https://www.ontario.ca/laws/regulation/240163"
+    },
+    {
+      "id": "toronto-r",
+      "jurisdiction": "toronto",
+      "type": "html",
+      "title": "Toronto Chapter 10.10 – R Residential",
+      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter10_10.htm",
+      "zone_scope": "R"
+    },
+    {
+      "id": "toronto-res-general",
+      "jurisdiction": "toronto",
+      "type": "html",
+      "title": "Toronto Chapter 10.5 – Residential category",
+      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter10.htm",
+      "zone_scope": "R"
+    },
+    {
+      "id": "toronto-cre",
+      "jurisdiction": "toronto",
+      "type": "html",
+      "title": "Toronto Chapter 50.10 – Commercial Residential Employment",
+      "url": "https://www.toronto.ca/zoning/bylaw_amendments/ZBL_NewProvision_Chapter50_10.htm",
+      "zone_scope": "CRE"
     }
   ]
 }
