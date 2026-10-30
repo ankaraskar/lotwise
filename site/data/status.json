@@ -1,1 +1,6 @@
-{"generated_at":null,"source_count":0,"status":"not_synced","warnings":["Run the GitHub Actions publishing workflow to fetch and index official documents."]}
+{
+  "generated_at": "2026-10-30T21:29:15.022906+00:00",
+  "source_count": 8,
+  "status": "indexed",
+  "warnings": []
+}
