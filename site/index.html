@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#10222b"/>
+<meta name="description" content="Lotwise — an open-source, official-source-only preliminary zoning research workspace."/>
+<title>Lotwise — Site Intelligence</title>
+<link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-logo">L<span class="brand-dot">.</span></span><div class="brand-name">LOT<span>WISE</span><small>PRELIMINARY SITE INTELLIGENCE</small></div></div>
+    <div class="side-label">WORKSPACE</div>
+    <nav class="side-nav" aria-label="Main navigation">
+      <button class="nav active" data-view="study"><span class="nav-symbol">▦</span> New feasibility study</button>
+      <button class="nav" data-view="research"><span class="nav-symbol">⌕</span> Official source library</button>
+      <button class="nav" data-view="method"><span class="nav-symbol">◫</span> Method & limitations</button>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-info"><div class="sidebar-info-title"><span class="pulse"></span> OPEN SOURCE · V0.2</div><p>No account. No paid AI API. Government sources only.</p><a href="https://github.com/new" target="_blank" rel="noopener">Host your own version ↗</a></div>
+    <div class="sidebar-bottom">BUILT FOR THE EARLY DESIGN STAGE</div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><span class="breadcrumbs">WORKSPACE <span>/</span> <strong id="breadcrumb">NEW STUDY</strong></span><div class="top-actions"><span class="privacy-dot"></span> Project inputs stay in this browser <span class="divider-dot">·</span> <span id="syncIndicator">Checking sources…</span></div></header>
+    <div class="page" id="studyView">
+      <div class="hero"><div class="eyebrow"><span class="eyebrow-line"></span> AN OPEN-SOURCE PLANNING RESEARCH TOOL</div><h1>Understand the site.<br><em>Before you design.</em></h1><p>From a client brief to a source-backed preliminary zoning review. Start with the property, then trace every finding to an official source.</p></div>
+      <section class="content-grid">
+        <div class="left-column">
+          <section class="panel inputs-panel"><div class="panel-heading"><div><div class="section-kicker">01 / PROJECT INPUT</div><h2>Start a new study</h2></div><span class="tag tag-neutral">NO ACCOUNT REQUIRED</span></div>
+            <form id="studyForm">
+              <div class="field"><label for="address">Property address <span class="required">*</span></label><input id="address" placeholder="e.g. 522 Mount Pleasant Rd" autocomplete="street-address"/><div class="field-help">Search an address point in the selected municipality's official GIS.</div></div>
+              <div class="field-row"><div class="field"><label for="municipality">Municipality</label><select id="municipality"><option value="toronto">Toronto</option><option value="brantford">Brantford</option></select></div><div class="field"><label for="buildingType">Building type</label><select id="buildingType"><option value="non_residential">Non-residential</option><option value="mixed_residential">Mixed use / Residential</option></select></div></div>
+              <div class="field"><label for="use">Proposed use</label><input id="use" placeholder="e.g. Restaurant, office, auto dealership"/></div>
+              <div class="field-row"><div class="field"><label for="gfa">Proposed GFA (m²)</label><input id="gfa" inputmode="decimal" type="number" step="0.01" min="0" placeholder="e.g. 850"/></div><div class="field"><label for="parkingUse">Parking classification</label><select id="parkingUse"><option value="">Select a use / not specified</option></select></div></div>
+              <div class="field"><label for="notes">Client brief / initial notes</label><textarea id="notes" rows="3" placeholder="Key requirements, storeys, site access, setbacks, program..."></textarea></div>
+              <details class="coord-details"><summary>Use coordinates when the address cannot be found</summary><div class="field-row coord-row"><div class="field"><label for="lat">Latitude</label><input id="lat" type="number" step="any" placeholder="43.70"/></div><div class="field"><label for="lon">Longitude</label><input id="lon" type="number" step="any" placeholder="-79.38"/></div></div><p>Coordinate intersections are research evidence, not a substitute for an up-to-date survey.</p></details>
+              <button id="submitBtn" class="primary-btn" type="submit"><span>Search official GIS</span><span class="arrow">↗</span></button>
+            </form>
+          </section>
+          <section class="panel results-panel" id="resultsPanel"><div class="panel-heading"><div><div class="section-kicker">02 / PROPERTY EVIDENCE</div><h2>GIS property results</h2></div><span class="tag" id="resultTag">NOT SEARCHED</span></div>
+            <div id="queryStatus" class="empty-state"><span class="empty-icon">⌁</span><h3>Ready for property research</h3><p>Run the GIS lookup to view address candidates, select the correct property, and examine the official zoning labels.</p></div>
+            <div id="candidateList" class="candidate-list" aria-live="polite"></div>
+            <div id="zoneDetail"></div>
+            <details class="manual-details"><summary>GIS unavailable? Enter a zoning label manually (unverified)</summary><div class="manual-row"><input id="manualZone" aria-label="Unverified zoning label" placeholder="e.g. MCC"/><button type="button" id="manualBtn" class="secondary-btn">Use label for research</button></div><p>This does not establish that the property is in the selected zone. Manual entries are flagged as unverified.</p></details>
+          </section>
+          <section class="panel standards-panel" id="standardsPanel"><div class="panel-heading"><div><div class="section-kicker">03 / REGULATION REVIEW</div><h2>Applicable provisions</h2></div><span class="tag" id="standardsTag">AWAITING ZONING</span></div><div id="standardsContent" class="empty-compact">Once you confirm a property or supply a clearly marked manual zoning label, supported regulatory references will appear here.</div></section>
+          <section class="panel notes-panel"><div class="panel-heading"><div><div class="section-kicker">04 / FINDINGS</div><h2>Preliminary review checklist</h2></div><button class="text-button" id="exportBtn" type="button">Print / Save PDF ↗</button></div><div class="check-grid" id="checkGrid"></div><div class="warning-line">This tool supports early-stage research. A zoning label or reference table is not a development approval or a professional compliance opinion.</div></section>
+        </div>
+        <aside class="right-column">
+          <section class="panel trust-panel"><div class="trust-head"><span class="trust-mark">✓</span><div><h3>Official sources only</h3><p>Evidence-first research</p></div></div><p>Our source catalogue is restricted to city and provincial government publishers and specifically verified municipal GIS endpoints.</p><div class="trust-row"><span>Toronto GIS</span><a target="_blank" rel="noopener" href="https://gis.toronto.ca/arcgis/rest/services/cot_geospatial11/FeatureServer">ArcGIS REST ↗</a></div><div class="trust-row"><span>Brantford zoning</span><a target="_blank" rel="noopener" href="https://www.buildbrantford.ca/planning-and-development-services/zoning/">Official portal ↗</a></div><div class="trust-row"><span>Ontario legislation</span><a target="_blank" rel="noopener" href="https://www.ontario.ca/laws">e-Laws ↗</a></div></section>
+          <section class="panel source-card"><div class="section-kicker">SOURCE INTEGRITY</div><h3>Live reference status</h3><div class="source-stat"><span>Document indexing</span><strong id="sourceIndexStatus">Not yet synced</strong></div><div class="source-stat"><span>Last index build</span><strong id="lastSync">—</strong></div><div class="source-stat"><span>Indexed excerpts</span><strong id="excerptCount">—</strong></div><div class="source-warning" id="sourceWarnings">The official index is published by GitHub Actions after deployment.</div></section>
+          <section class="aside-guide"><div class="section-kicker">RESEARCH PROTOCOL</div><h3>A zoning label is only the beginning.</h3><div class="protocol"><span>01</span><p>Confirm the correct official address point and zoning polygon.</p></div><div class="protocol"><span>02</span><p>Find the relevant tables and use-specific rules.</p></div><div class="protocol"><span>03</span><p>Check exceptions, amendments, appeals and overlay conditions.</p></div><div class="protocol"><span>04</span><p>Record what is verified and what still needs a professional review.</p></div></section>
+        </aside>
+      </section>
+      <footer>LOTWISE <span>·</span> PRELIMINARY RESEARCH ONLY <span>·</span> OPEN-SOURCE PROTOTYPE</footer>
+    </div>
+    <div class="page hidden" id="researchView"><div class="eyebrow"><span class="eyebrow-line"></span> OFFICIAL DOCUMENTS</div><h1 class="subpage-title">Source library<span class="period">.</span></h1><p class="subpage-intro">Search the automatically indexed excerpts from government-published documents. Results link to their original page or PDF page, not third-party interpretations.</p><section class="panel library-panel"><div class="field"><label for="docSearch">Search official sources</label><input id="docSearch" placeholder="e.g. parking, MCC, setbacks, amendments"/></div><div class="filters"><button class="filter active" data-filter="all">All sources</button><button class="filter" data-filter="toronto">Toronto</button><button class="filter" data-filter="brantford">Brantford</button></div><div id="docResults" class="doc-results"></div></section></div>
+    <div class="page hidden" id="methodView"><div class="eyebrow"><span class="eyebrow-line"></span> TRANSPARENT METHOD</div><h1 class="subpage-title">Trust the source.<br><em>Question the conclusion.</em></h1><p class="subpage-intro">Lotwise is a research aid, not a replacement for municipal review or licensed professionals.</p><div class="method-grid"><section class="panel"><h3>What the site does now</h3><p>Queries specified official GIS services in the browser, requires confirmation of address candidates, provides a bounded reference to Brantford MCC standards, estimates base parking for supported uses, and searches a GitHub Actions–generated official-document index.</p></section><section class="panel"><h3>What it cannot establish yet</h3><p>It cannot verify legal parcel limits, all amendments and appeals, permission for a proposed use, required parking after exceptions, or full Building Code compliance. Other zones are explicitly marked as not yet structured.</p></section><section class="panel"><h3>Privacy & open source</h3><p>Your client brief stays in your browser while you use this page. We do not have a user account system, analytics, or a paid AI API. Official GIS requests necessarily transmit the searched address or coordinates to the municipality's published GIS service.</p></section><section class="panel"><h3>Why not ask AI to guess?</h3><p>Official-document extracts are shown with the original URL, page and last successful index date. The system never silently substitutes a general rule when the applicable special provisions or circumstances are unknown.</p></section></div></div>
+  </main>
+</div>
+<script src="./app.js" defer></script>
+</body></html>

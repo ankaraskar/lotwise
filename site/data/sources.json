@@ -1,0 +1,11 @@
+{
+  "jurisdictions": [
+    {"id":"toronto","name":"City of Toronto","official_page":"https://www.toronto.ca/city-government/planning-development/zoning-by-law-preliminary-zoning-reviews/","gis":"https://gis.toronto.ca/arcgis/rest/services/cot_geospatial11/FeatureServer","address_gis":"https://gis.toronto.ca/arcgis/rest/services/cot_geospatial27/FeatureServer/101","notice":"Zoning map labels are preliminary; check Chapter 900 exceptions, amendments, appeals and former by-laws."},
+    {"id":"brantford","name":"City of Brantford","official_page":"https://www.buildbrantford.ca/planning-and-development-services/zoning/","official_pdf":"https://www.buildbrantford.ca/media/l0clnl4m/zoning-bylaw-text.pdf","address_gis":"https://services.arcgis.com/aji2lCmjXt0KpGzI/arcgis/rest/services/OP_Site_Addresses2/FeatureServer/0","zone_gis":"https://services.arcgis.com/aji2lCmjXt0KpGzI/arcgis/rest/services/Schedule_A_Zones/FeatureServer/0","notice":"Check site-specific appeals, the Interim Control By-law for certain employment lands, amendments, and Schedule D parking exceptions."}
+  ],
+  "documents": [
+    {"id":"brantford-zoning","jurisdiction":"brantford","type":"pdf","title":"Zoning By-law 124-2024 (office consolidation)","url":"https://www.buildbrantford.ca/media/l0clnl4m/zoning-bylaw-text.pdf"},
+    {"id":"brantford-zoning-page","jurisdiction":"brantford","type":"html","title":"City of Brantford – Zoning", "url":"https://www.buildbrantford.ca/planning-and-development-services/zoning/"},
+    {"id":"toronto-zoning-page","jurisdiction":"toronto","type":"html","title":"City of Toronto – Zoning By-laws", "url":"https://www.toronto.ca/city-government/planning-development/zoning-by-law-preliminary-zoning-reviews/"}
+  ]
+}
