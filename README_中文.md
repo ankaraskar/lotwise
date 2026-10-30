@@ -28,3 +28,12 @@ GitHub Actions 会在云端安装 PDF 解析程序并访问官方文件，之后
 客户 Brief/面积默认不发送到服务器，但**地址和坐标查询需要传递给市政府的 GIS 服务**。不要把保密的客户图纸上传到公开 GitHub 仓库。未来要用于公司正式商业业务，需要先确认 GitHub Pages 的适用条款和客户资料安全要求。
 
 源代码 MIT 开源；政府文件版权仍归其发布机构。完整英文技术说明见 `README.md`。
+
+## v0.3 更新
+- Toronto CR SS2：显示官方高度图层中的 `HT_HEIGHT` / `HT_STORIES`（如有）和 Chapter 40.10、Chapter 900 例外条款官方链接；不会把 GIS 数值直接判定为最终可建高度。
+- Brantford 停车：可以根据清晰的 Proposed Use 自动匹配基础停车标准；支持汽车销售店的非维修区 GFA + 维修工位，以及汽车维修车间每工位的费率。
+- GitHub Actions 自动索引增加 Toronto CR、Parking、Exceptions 和相关 amendment 官方资料。
+
+**更新网站：** 在 GitHub `lotwise` 仓库上传新版 `site/` 和 `scripts/` 文件夹的内容，保留原 `.github/workflows/pages.yml`。然后到 Actions 手动触发发布。使用浏览器访问网站的用户不需要安装程序。
+
+**限制：** 这不是完整的法规解释引擎；尚未处理所有分区或自动核准所有例外、parking reductions、appeals。

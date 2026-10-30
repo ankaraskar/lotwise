@@ -19,7 +19,7 @@
       <button class="nav" data-view="method"><span class="nav-symbol">◫</span> Method & limitations</button>
     </nav>
     <div class="sidebar-spacer"></div>
-    <div class="sidebar-info"><div class="sidebar-info-title"><span class="pulse"></span> OPEN SOURCE · V0.2</div><p>No account. No paid AI API. Government sources only.</p><a href="https://github.com/new" target="_blank" rel="noopener">Host your own version ↗</a></div>
+    <div class="sidebar-info"><div class="sidebar-info-title"><span class="pulse"></span> OPEN SOURCE · V0.3</div><p>No account. No paid AI API. Government sources only.</p><a href="https://github.com/new" target="_blank" rel="noopener">Host your own version ↗</a></div>
     <div class="sidebar-bottom">BUILT FOR THE EARLY DESIGN STAGE</div>
   </aside>
   <main class="main">
@@ -34,6 +34,7 @@
               <div class="field-row"><div class="field"><label for="municipality">Municipality</label><select id="municipality"><option value="toronto">Toronto</option><option value="brantford">Brantford</option></select></div><div class="field"><label for="buildingType">Building type</label><select id="buildingType"><option value="non_residential">Non-residential</option><option value="mixed_residential">Mixed use / Residential</option></select></div></div>
               <div class="field"><label for="use">Proposed use</label><input id="use" placeholder="e.g. Restaurant, office, auto dealership"/></div>
               <div class="field-row"><div class="field"><label for="gfa">Proposed GFA (m²)</label><input id="gfa" inputmode="decimal" type="number" step="0.01" min="0" placeholder="e.g. 850"/></div><div class="field"><label for="parkingUse">Parking classification</label><select id="parkingUse"><option value="">Select a use / not specified</option></select></div></div>
+              <div class="field hidden" id="serviceBaysField"><label for="serviceBays">Service bays (automotive uses)</label><input id="serviceBays" type="number" step="1" min="0" placeholder="e.g. 6"/><div class="field-help">For automobile sales, the GFA field must EXCLUDE service area. Enter service bay count separately. Review each use definition.</div></div>
               <div class="field"><label for="notes">Client brief / initial notes</label><textarea id="notes" rows="3" placeholder="Key requirements, storeys, site access, setbacks, program..."></textarea></div>
               <details class="coord-details"><summary>Use coordinates when the address cannot be found</summary><div class="field-row coord-row"><div class="field"><label for="lat">Latitude</label><input id="lat" type="number" step="any" placeholder="43.70"/></div><div class="field"><label for="lon">Longitude</label><input id="lon" type="number" step="any" placeholder="-79.38"/></div></div><p>Coordinate intersections are research evidence, not a substitute for an up-to-date survey.</p></details>
               <button id="submitBtn" class="primary-btn" type="submit"><span>Search official GIS</span><span class="arrow">↗</span></button>

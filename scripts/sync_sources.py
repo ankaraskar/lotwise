@@ -76,7 +76,10 @@ def extract_pages(blob, kind):
     if kind == "html":
         parser = PlainText()
         parser.feed(blob.decode("utf-8", "replace"))
-        return [(1, " ".join(parser.parts))]
+        # Split large official HTML chapters into bounded searchable blocks.
+        # Avoid keeping only the first three matches from a 30,000-line chapter.
+        words = " ".join(parser.parts).split()
+        return [(i // 320 + 1, " ".join(words[i:i+320])) for i in range(0, len(words), 320)]
     if kind == "pdf":
         if not blob.startswith(b"%PDF"):
             raise ValueError("Downloaded content is not a PDF")
@@ -131,7 +134,7 @@ def update_data(offline=False):
                 for excerpt in snippets(text):
                     out.append({"doc_id": source["id"], "title": source["title"],
                                 "jurisdiction": source["jurisdiction"], "page": page,
-                                "excerpt": excerpt, "source_url": resolved + (f"#page={page}" if source["type"] == "pdf" else "")})
+                                "content_type": source["type"], "excerpt": excerpt, "source_url": resolved + (f"#page={page}" if source["type"] == "pdf" else "")})
             print(f"Indexed {source['id']}: {len(pages)} page(s)")
         except Exception as exc:
             msg = f"{source['id']} could not be refreshed: {exc}"

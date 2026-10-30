@@ -7,13 +7,28 @@
       "status": "reference_verified_general_table_only",
       "source_url": "https://www.buildbrantford.ca/media/l0clnl4m/zoning-bylaw-text.pdf#page=141",
       "source_section": "By-law 124-2024 (January 2026 consolidation), section 6.6, Table 6.6.1, printed page 135",
-      "notes": ["Use-specific standards vary between the mixed-use/residential and non-residential columns.","Section 6.6.2 and any MCC site-specific exceptions in 6.6.3 must be checked.","Official consolidated document may omit or lag later amendments; confirm applicability with the City."],
+      "notes": [
+        "Use-specific standards vary between the mixed-use/residential and non-residential columns.",
+        "Section 6.6.2 and any MCC site-specific exceptions in 6.6.3 must be checked.",
+        "Official consolidated document may omit or lag later amendments; confirm applicability with the City."
+      ],
       "columns": {
         "non_residential": {
-          "Maximum building height": "15 m", "Minimum front yard": "3 m", "Minimum rear yard": "7.5 m", "Minimum interior side yard": "5.5 m*", "Minimum exterior side yard": "3 m", "Minimum landscaped open space": "10%"
+          "Maximum building height": "15 m",
+          "Minimum front yard": "3 m",
+          "Minimum rear yard": "7.5 m",
+          "Minimum interior side yard": "5.5 m*",
+          "Minimum exterior side yard": "3 m",
+          "Minimum landscaped open space": "10%"
         },
         "mixed_residential": {
-          "Minimum building height": "10.5 m", "Maximum building height": "56 m", "Minimum front yard": "NR", "Minimum rear yard": "7.5 m", "Minimum interior side yard": "5.5 m*", "Minimum exterior side yard": "3 m", "Minimum landscaped open space": "30%"
+          "Minimum building height": "10.5 m",
+          "Maximum building height": "56 m",
+          "Minimum front yard": "NR",
+          "Minimum rear yard": "7.5 m",
+          "Minimum interior side yard": "5.5 m*",
+          "Minimum exterior side yard": "3 m",
+          "Minimum landscaped open space": "30%"
         }
       },
       "footnotes": "* Table 6.6.1 note (3) contains a conditional 0 m exception where an interior lot line abuts a non-residential zone and the facing exterior wall has no windows. NR means no requirement under that table row, not that other rules do not apply."
@@ -24,13 +39,65 @@
     "source_section": "By-law 124-2024, Section 5, Table 5.3.a (non-residential)",
     "status": "curated_base_rates_not_site_specific",
     "rates": [
-      {"id":"office","label":"Office, general","m2_per_space":30,"source_printed_page":89},
-      {"id":"medical","label":"Office, medical","m2_per_space":20,"source_printed_page":89},
-      {"id":"restaurant","label":"Restaurant","m2_per_space":10,"source_printed_page":89},
-      {"id":"retail","label":"Retail store","m2_per_space":30,"source_printed_page":89},
-      {"id":"community","label":"Community centre or community hall","m2_per_space":25,"source_printed_page":87},
-      {"id":"studio","label":"Studio","m2_per_space":30,"source_printed_page":90},
-      {"id":"warehouse","label":"Warehouse","m2_per_space":500,"source_printed_page":90}
+      {
+        "id": "office",
+        "label": "Office, general",
+        "m2_per_space": 30,
+        "source_printed_page": 89
+      },
+      {
+        "id": "medical",
+        "label": "Office, medical",
+        "m2_per_space": 20,
+        "source_printed_page": 89
+      },
+      {
+        "id": "restaurant",
+        "label": "Restaurant",
+        "m2_per_space": 10,
+        "source_printed_page": 89
+      },
+      {
+        "id": "retail",
+        "label": "Retail store",
+        "m2_per_space": 30,
+        "source_printed_page": 89
+      },
+      {
+        "id": "community",
+        "label": "Community centre or community hall",
+        "m2_per_space": 25,
+        "source_printed_page": 87
+      },
+      {
+        "id": "studio",
+        "label": "Studio",
+        "m2_per_space": 30,
+        "source_printed_page": 90
+      },
+      {
+        "id": "warehouse",
+        "label": "Warehouse",
+        "m2_per_space": 500,
+        "source_printed_page": 90
+      },
+      {
+        "id": "auto_sales",
+        "label": "Automobile sales establishment",
+        "m2_per_space": 30,
+        "service_bay_rate": 4,
+        "formula": "non_service_gfa_plus_service_bays",
+        "source_printed_page": 87,
+        "note": "Use only GFA excluding the service area. Add 4 spaces per service bay (Table 5.3.a item 10)."
+      },
+      {
+        "id": "auto_repair",
+        "label": "Automobile repair garage",
+        "service_bay_rate": 4,
+        "formula": "service_bays_only",
+        "source_printed_page": 87,
+        "note": "4 spaces per service bay (Table 5.3.a item 11)."
+      }
     ],
     "warning": "Illustrative base-rate calculation only. Do not treat as a required parking count until Schedule D, relevant exceptions, exact use definitions, GFA, accessible spaces, amendments and special provisions are checked."
   }
