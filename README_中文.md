@@ -1,39 +1,29 @@
-# Lotwise · 中文使用说明
+# Lotwise v0.4 — 使用及更新说明
 
-**Lotwise** 是免费、开源的建筑用地初步 Zoning 研究网页。目前支持 Toronto、Brantford 的官方 GIS 查询，并尝试自动从官方网页/PDF 生成法规文献索引。**使用网页的人不需要安装 Python、下载法规 PDF，也不需要付费 AI API。**
+Lotwise 是一个免费的开源 GitHub Pages 建筑场地与法规初步审查项目。访客直接打开网页，不需要安装 Python、付费 API 或任何软件。网页默认英文。
 
-## 发布到 GitHub Pages
+## v0.4 新增
 
-1. 登录 GitHub，创建一个 **Public** 仓库，例如 `lotwise`。
-2. 将 ZIP **解压后其中所有文件与文件夹** 上传到仓库，保持路径不变，特别是 `.github/workflows/pages.yml`。不能只上传 ZIP 本身。
-3. 到仓库 **Settings → Pages → Source**，选 **GitHub Actions**。
-4. 到 **Actions**，选择 **Publish Lotwise and refresh official sources → Run workflow**（第一次 push 通常也会自动运行）。
-5. 部署成功后，打开 `https://你的用户名.github.io/lotwise/`。
+- 专业化界面，最上方直接显示 **Zoning、Height、Setbacks、Parking** 四项结果。
+- Toronto **CR SS2**：明确显示一般规则的条件性 front / rear / side setbacks、GIS 高度数值（如查询到）和 x531 exception 提醒。
+- Brantford **MCC**：区分非住宅及混合／住宅用途的建筑高度、院距、绿化比例等一般规则；Parking 支持常见用途的初步费率及汽车经销店计算。
+- 新增 **Ontario Building Code (OBC) 初步筛查**：填 provisional major occupancy、OBC storeys、building area、项目类型，显示可能的 Part 9 / Part 3 审查路径及后续需要确认的消防、出口、无障碍等项目。
+- 官方资料索引新增安省 OBC Compendium 和现行 O. Reg. 163/24 的官网链接、抓取配置。
 
-GitHub Actions 会在云端安装 PDF 解析程序并访问官方文件，之后每周自动检查更新。普通用户打开浏览器就可以使用。
+## 更新 GitHub Pages
 
-## 当前能力
+1. 解压更新包；把**内部的文件和文件夹**上传到现有 `lotwise` GitHub 仓库根目录，替换同名文件，保持 `.github/workflows/pages.yml`、`site/`、`scripts/` 等路径结构。
+2. Commit changes；在 GitHub 的 **Actions** 确认自动发布成功。
+3. 刷新 `https://你的用户名.github.io/lotwise/`；如果显示旧版，用 `Ctrl + Shift + R` 强制刷新。
+4. 用 **522 Mount Pleasant Rd, Toronto** 与 **5 Woodyatt Dr, Brantford** 进行回归测试。先确认物业，然后查看最上方四项摘要及 **Development standards**。
+5. OBC 输入的是 **Building Area（按 OBC 定义）**，不是总 GFA。法规适用最终需由负责的专业人员确认。
 
-- 默认英文、适配桌面和手机。
-- 通过官方地址点 + Zoning 图层查询 Toronto / Brantford，**必须手动确认匹配物业**。
-- 查询相应 GIS 覆盖图层并展示原始来源。
-- Brantford MCC 的基础建筑标准，以及部分 Table 5.3.a Parking 标准的**参考**计算。
-- GitHub Actions 定期下载政府官方 PDF/网页并建立可搜索的**文字片段索引**，附文献链接和页面。
-- 清楚标记需要核查的 exceptions、amendments、parking、OBC 等事项。
+## 当前局限
 
-## 暂未实现
+- 这不是全面支持所有城市、所有 zoning 类别的通用法规解析器。已结构化覆盖的是 Toronto CR SS2 的部分条件性规定和 Brantford MCC 的一般规定。
+- 具体允许的设计受到 site-specific exceptions、amendments、appeals、survey、用途、消防等影响。缺失信息显示为待核实，不应直接认为符合要求。
+- Brantford Parking 只提供初步 base-rate 计算；Toronto Chapter 200 停车计算尚未实现。
+- OBC 目前是 **Part 9 / Part 3 初步适用性筛查与待审事项清单**，并非完整 Code Compliance Check。官方 HTML Compendium 可能落后于最新安省法规修正，应核对现行 O. Reg. 163/24。
+- 网页的客户 Brief 留在浏览器，GIS 地址查询会将地址／坐标发送到对应官方政府 GIS 服务。不要把客户保密资料上传到公开 GitHub 仓库。
 
-**当前并不能自动把所有城市、所有分区、所有用途的法规 PDF 转换成准确的 Height/Setbacks/Parking 结构化数据。** 自动下载、全文检索和自动正确理解法规是三个不同阶段。对于未知分区，Lotwise 不会编造数值，而会显示需要进一步核查。GIS 可能受到浏览器跨域 CORS 限制；如果查询失败，会提示错误。
-
-客户 Brief/面积默认不发送到服务器，但**地址和坐标查询需要传递给市政府的 GIS 服务**。不要把保密的客户图纸上传到公开 GitHub 仓库。未来要用于公司正式商业业务，需要先确认 GitHub Pages 的适用条款和客户资料安全要求。
-
-源代码 MIT 开源；政府文件版权仍归其发布机构。完整英文技术说明见 `README.md`。
-
-## v0.3 更新
-- Toronto CR SS2：显示官方高度图层中的 `HT_HEIGHT` / `HT_STORIES`（如有）和 Chapter 40.10、Chapter 900 例外条款官方链接；不会把 GIS 数值直接判定为最终可建高度。
-- Brantford 停车：可以根据清晰的 Proposed Use 自动匹配基础停车标准；支持汽车销售店的非维修区 GFA + 维修工位，以及汽车维修车间每工位的费率。
-- GitHub Actions 自动索引增加 Toronto CR、Parking、Exceptions 和相关 amendment 官方资料。
-
-**更新网站：** 在 GitHub `lotwise` 仓库上传新版 `site/` 和 `scripts/` 文件夹的内容，保留原 `.github/workflows/pages.yml`。然后到 Actions 手动触发发布。使用浏览器访问网站的用户不需要安装程序。
-
-**限制：** 这不是完整的法规解释引擎；尚未处理所有分区或自动核准所有例外、parking reductions、appeals。
+**MIT 开源许可。用于早期研究，不构成审批或专业设计意见。**

@@ -1,83 +1,57 @@
-# Lotwise v0.3
+# Lotwise v0.4 — Site Intelligence
 
-**Official-source-only, open-source preliminary zoning research.**
+A free, open-source, static GitHub Pages prototype for preliminary site zoning and Ontario Building Code research. **No install, Python or paid AI API is required for website visitors.**
 
-Lotwise is a GitHub Pages website for early-stage architectural site feasibility studies. It has **no login, no paid AI API and no Python requirement for website users**. The website is in English. The underlying source-indexing script runs on GitHub's hosted runner, not on anyone's computer.
+## What's new in 0.4
 
-> **Research prototype, NOT a zoning certificate or a professional compliance determination.** All results must be checked against the applicable by-law, site-specific exceptions, zoning amendments/appeals, survey and other law. Where the app cannot establish a provision, it says so.
+- Redesigned English-first, responsive desktop/mobile interface with top-of-page **Zoning / Height / Setbacks / Parking** snapshot cards.
+- Toronto CR SS2: links to official Chapter 40.10 and shows general front, rear, side setback conditions (which require site context), applicable GIS height when present, and exception x531 warning.
+- Brantford MCC: curated official Table 6.6.1 building standards separated into non-residential vs mixed/residential building types, with conditional footnotes.
+- Brantford indicative parking base rates where a single supported use is selected. Automobile sales calculation separately uses non-service GFA and service bays.
+- **Ontario Building Code initial screening:** scope of work, provisional major occupancy, storeys and *building area* (not GFA), with an advisory on possible Part 9 vs Part 3 review and an action checklist. References current O. Reg. 163/24 and official Compendium.
+- GitHub Actions official-government-only document index now includes Ontario OBC scope and legal regulation pages.
+- Uses system fonts; the website has no runtime third-party fonts, trackers, or AI services.
 
-## Deploy with GitHub (no coding on your computer)
+## Publish changes to your existing GitHub Pages repository
 
-1. [Create a **public** GitHub repository](https://github.com/new), e.g. `lotwise`. Do not add a generated README because this package already has one.
-2. Upload the **contents** of this package to the repository, preserving the folder names (including hidden `.github/workflows/pages.yml`). Uploading a `.zip` as one file is **not** sufficient. You can use GitHub's **Add file → Upload files** in a supported browser; if it does not preserve subfolders, use the GitHub web editor to add the indicated paths.
-3. In the repository, choose **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-4. Open **Actions → Publish Lotwise and refresh official sources → Run workflow** if it has not already run on the first push.
-5. Once the workflow deploys, open `https://YOUR-USERNAME.github.io/lotwise/` (replace account/repo names as appropriate).
+1. Unzip and upload the **contents**, preserving paths, to your GitHub repository (`main`). The root must contain `.github/`, `scripts/`, `site/`, `tests/`, and the README files. **Do not upload only a ZIP**, or nest everything inside an extra `Lotwise_v0.4/` directory.
+2. **Preserve / update `.github/workflows/pages.yml`** to retain the indexing and Pages deployment workflow. Browser users never need Python; GitHub's hosted Actions runner runs the indexing script.
+3. Commit the changes and review the **Actions** tab. In your repo's **Settings > Pages**, Source should be **GitHub Actions**.
+4. Visit `https://YOUR_USERNAME.github.io/lotwise/`. Hard-refresh with `Ctrl + Shift + R` if you see a cached old page.
+5. Confirm Toronto and Brantford GIS addresses, and enter the **Proposed use** + GFA for the parking panel. For OBC, select occupancy and **building area** rather than total GFA.
 
-Pages is free for public repositories subject to GitHub's current terms and limits. Scheduled indexing is best effort. The Actions runner needs internet access to government domains. Site users do not run Python or download any PDFs.
+## Current capabilities and limits
 
-## What works in v0.3
+### Official GIS and data
 
-- English-only polished responsive interface and direct GIS lookup by address / coordinates.
-- **Toronto:** official Toronto Address Point Layer 101 → Zoning Property Summary Layer 18 (fallback Layer 3), plus Height (9), Lot Coverage (10) and Policy (13) overlays.
-- **Brantford:** City-published ArcGIS address points and Schedule A zoning polygons; optional layer checks. Because the GIS is hosted by Esri, `services.arcgis.com/aji2lCmjXt0KpGzI` is an **explicitly pinned City of Brantford GIS service**, not an internet-wide search.
-- Large **Confirm this property** control; the app does not assume which point represents the surveyed legal parcel.
-- Brantford **MCC base standards** from Table 6.6.1, with separate columns by building type; a limited reference list of Section 5 parking rates.
-- General-purpose official-document **text excerpt index** built by GitHub Actions from an approved list of government PDFs/pages. Results link to the original document and page.
-- Print/save report to PDF using the browser; checklist distinguishes point match from provisions requiring review.
+Property address-point intersection from pinned City of Toronto and City of Brantford ArcGIS layers. Toronto height/coverage/policy overlays and Brantford Schedule D/B point queries. This is not property boundary verification. The Municipalities' GIS endpoint has to permit browser cross-origin requests.
 
-## Not yet implemented (important)
+### Zoning research (not a determination)
 
-- Complete, automatically validated rules for **every** Toronto/Brantford zone, every amendment and every building use.
-- Legally reliable parking totals (exceptions, mixed use, accessible spaces, rounding and loading).
-- Formal OBC compliance, geospatial parcel/survey matching, official zoning certification.
-- A robust PDF *table-to-structured-standards* pipeline (the weekly job builds a **searchable navigation index**, not complete zoning rule objects).
-- Guaranteed cross-origin browser access to all government GIS endpoints; municipal CORS policies may change. On a blocked request, the interface reports the failure rather than fabricating results.
+Only **Toronto CR SS2 (with conditional rules)** and **Brantford MCC** have particularly detailed structured references. Other zone categories explicitly show *not indexed/review required*. A generic official-document excerpt search is available in Source library, but it is **not** a comprehensive zoning interpretation engine. The official zoning table may be superseded by amendments, exceptions, appeals or site circumstances.
 
-This is an honest MVP: it solves **zero-install access, automatic official document retrieval, constrained sources, source traceability and property confirmation**. The next milestone is a reviewed rules importer to populate all districts instead of relying on manually curated tables.
+### OBC
 
-## Official-only source policy
+Scope screening based on Ontario's current official [O. Reg. 163/24](https://www.ontario.ca/laws/regulation/240163) and the [2024 Building Code Compendium, Division A, Article 1.3.3.3](https://www.ontario.ca/document/2024-building-code-compendium/part-1-compliance). The 2024 Compendium HTML has at times lagged the **latest regulation amendments**; check the current e-Laws consolidation and official amendment text. Screening is **not an OBC compliance analysis**: mixed occupancies, Part 11, fire protection, exits, accessibility, and other provisions still require professional review. The user selects a *provisional* major occupancy; the app does not infer one from a colloquial use name.
 
-- `site/data/sources.json` contains an **explicit, reviewed list** of government sources. The indexer only fetches HTTPS pages/PDFs from the hosts hard-coded in `scripts/sync_sources.py`.
-- Redirect destinations are rechecked against the allowlist. Non-government sites and search-engine snippets cannot enter the index.
-- The browser queries **pinned City-published GIS endpoints** and never sends the client brief or GFA to any backend. An address/coordinate is necessarily transmitted to the relevant official GIS endpoint; there is no server-side project storage.
-- Source citations, publication/version dates, index build times and warnings are preserved. Failed updates are marked stale or unavailable; missing data never means a by-law does not apply.
-- Municipalities may amend by-laws after publication of consolidated documents. Confirm updates from the appropriate municipality.
+### Parking
 
-## Free/open-source technology
+A rate shown here is a **general base-rate example**, not a legally required parking count. The calculation remains unrounded until exemptions, mixed uses, Schedule D, accessible parking, other by-laws, and amendments have been verified. Toronto does not yet calculate Chapter 200 parking counts.
 
-Vanilla HTML/CSS/JavaScript, Python 3 for GitHub Actions, [pypdf](https://github.com/py-pdf/pypdf) for PDF text extraction, no third-party client-side JS/CDN dependencies. Source code licensed under MIT; official government documents retain their respective publishers' rights.
+### Security and privacy
 
-### Local development (optional; website users don't do this)
+Research sources are pinned to approved official government hosts, with URL restrictions in both the browser and GitHub Actions indexing script. Survey and brief text is not uploaded to any Lotwise server. GIS lookups necessarily transmit the selected address/coordinates to the municipal GIS endpoint. Keep sensitive project files out of public GitHub repositories.
 
-```bash
-python -m http.server --directory site 8080
-python -m unittest discover -s tests -v
+## Developer checks
+
+```sh
 python scripts/sync_sources.py --check-only
+python -m unittest discover -s tests -v
+node --check site/app.js
 ```
 
-Static site: `http://localhost:8080/`. Running a local server is optional for developers only. GitHub Actions installs pypdf automatically to process official PDFs. Any change to the official source list requires a deliberate code review.
+GitHub Actions uses Python with the free and open-source `pypdf` library to refresh document excerpts. If an official fetch fails, the index records a warning and can retain clearly marked stale evidence; it does **not** invent results.
 
-## Project folders
+## License
 
-- `site/` — deployed GitHub Pages site; all browser-side client-side logic.
-- `site/data/` — allowed source manifest, provision references, generated index and health status.
-- `scripts/sync_sources.py` — safe government-only download / PDF text navigation indexing.
-- `.github/workflows/pages.yml` — weekly scheduled update and GitHub Pages deployment.
-- `tests/` — safety and functional checks.
-
-## Privacy & publishing warning
-
-Do not commit client Survey files, private designs or customer briefs to a public repository. This starter has **no upload-to-server** feature. For commercial client-facing production, confirm suitability of GitHub Pages hosting and add an appropriate authentication and data protection plan before storing any project information.
-
-## v0.3 changes (30 October 2026)
-- Toronto CR SS1–SS5: official chapter links, dynamic HT_HEIGHT and HT_STORIES display if provided by official height overlay; no automatic claim of legal allowable height where exceptions are unknown.
-- Toronto CR x531: links to Chapter 900 and By-law 595-2022; warnings concerning referenced exceptions.
-- Brantford parking: auto-matches unambiguous Proposed Use values; includes automobile dealership formula (non-service GFA + service bays) and automobile repair garage (service bays only); common rates visible even without a selected use.
-- Weekly official document index includes Toronto CR, parking, CR exceptions and amendment pages. HTML chapters are chunked into searchable sections rather than indexing just their first few keywords.
-- No paid APIs, no Python requirement for website visitors, no third-party government-law sources.
-
-### Updating existing GitHub Pages deployment
-Replace the files under `site/` and `scripts/` in the existing repository, keeping `.github/workflows/pages.yml`. Trigger **Actions → Publish Lotwise and refresh official sources → Run workflow**; the weekly job will rebuild the expanded official-document index. Do not upload private client files to the public repo.
-
-**Not implemented:** general-purpose parsing of all zoning rules for all municipalities, verification of current site-specific appeals, legally reliable parking counts, or a complete OBC checker.
+MIT. Preliminary research only; not a zoning certificate, permit approval, architect's certification, or professional code opinion.

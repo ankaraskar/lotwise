@@ -21,7 +21,7 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "site" / "data"
 ALLOW = {"www.buildbrantford.ca", "www.toronto.ca", "www.ontario.ca", "www.e-laws.gov.on.ca"}
-KEYWORDS = re.compile(r"\b(?:parking|setback|height|coverage|front yard|rear yard|interior side yard|permitted uses|site.specific|exception|amendment|appeal|interim control|MCC|development standards|loading|lot area)\b", re.I)
+KEYWORDS = re.compile(r"\b(?:parking|setback|height|coverage|front yard|rear yard|interior side yard|permitted uses|site.specific|exception|amendment|appeal|interim control|MCC|development standards|loading|lot area|building code|occupancy|part 9|part 3|barrier.free|fire separation|exit|accessibility)\b", re.I)
 MAX_BYTES = 45 * 1024 * 1024
 
 

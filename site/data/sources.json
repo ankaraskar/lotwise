@@ -16,6 +16,12 @@
       "address_gis": "https://services.arcgis.com/aji2lCmjXt0KpGzI/arcgis/rest/services/OP_Site_Addresses2/FeatureServer/0",
       "zone_gis": "https://services.arcgis.com/aji2lCmjXt0KpGzI/arcgis/rest/services/Schedule_A_Zones/FeatureServer/0",
       "notice": "Check site-specific appeals, the Interim Control By-law for certain employment lands, amendments, and Schedule D parking exceptions."
+    },
+    {
+      "id": "ontario",
+      "name": "Ontario Building Code",
+      "official_page": "https://www.ontario.ca/document/2024-building-code-compendium",
+      "notice": "Check the live consolidated O. Reg. 163/24 and the Ontario amendments, as the online compendium may lag latest regulations."
     }
   ],
   "documents": [
@@ -74,6 +80,27 @@
       "type": "pdf",
       "title": "Toronto By-law 595-2022 – CR 531 and related exceptions",
       "url": "https://www.toronto.ca/legdocs/bylaws/2022/law0595.pdf"
+    },
+    {
+      "id": "ontario-obc-compendium",
+      "jurisdiction": "ontario",
+      "type": "html",
+      "title": "Ontario 2024 Building Code Compendium — overview and amendment warning",
+      "url": "https://www.ontario.ca/document/2024-building-code-compendium"
+    },
+    {
+      "id": "ontario-obc-scope",
+      "jurisdiction": "ontario",
+      "type": "html",
+      "title": "2024 Ontario Building Code — Division A, Part 9 application and compliance",
+      "url": "https://www.ontario.ca/document/2024-building-code-compendium/part-1-compliance"
+    },
+    {
+      "id": "ontario-obc-reg-current",
+      "jurisdiction": "ontario",
+      "type": "html",
+      "title": "Current Ontario Regulation 163/24 — Building Code (e-Laws)",
+      "url": "https://www.ontario.ca/laws/regulation/240163"
     }
   ]
 }
