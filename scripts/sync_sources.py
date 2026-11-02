@@ -18,6 +18,7 @@ import sys
 import urllib.parse
 import urllib.request
 from evidence import candidate_entries
+from rule_candidates import extract_rule_candidates
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "site" / "data"
@@ -115,6 +116,9 @@ def update_data(offline=False):
     docs = []
     out = []
     evidence = []
+    rule_candidates = []
+    cached_rules_path = DATA / "rule_candidates.json"
+    cached_rules = json.loads(cached_rules_path.read_text(encoding="utf8")).get("records", []) if cached_rules_path.exists() else []
     warns = []
     stamp = dt.datetime.now(dt.timezone.utc).isoformat()
     if offline:
@@ -136,6 +140,7 @@ def update_data(offline=False):
             docs.append(row)
             for page, text in pages:
                 evidence.extend(candidate_entries(text, source, page, max_entries=10))
+                rule_candidates.extend(extract_rule_candidates(text, source, page))
                 for excerpt in snippets(text):
                     out.append({"doc_id": source["id"], "title": source["title"],
                                 "jurisdiction": source["jurisdiction"], "page": page,
@@ -152,6 +157,7 @@ def update_data(offline=False):
                 docs.append(prior)
                 out += [v for v in cached_snips if v["doc_id"] == source["id"]]
                 evidence += [v for v in cached_evidence if v["doc_id"] == source["id"]]
+                rule_candidates += [v for v in cached_rules if v["doc_id"] == source["id"]]
             else:
                 docs.append({**source, "status": "unavailable", "last_error": str(exc)})
     status = {"generated_at": stamp, "source_count": len(docs),
@@ -161,7 +167,9 @@ def update_data(offline=False):
     (DATA / "status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf8")
     (DATA / "evidence.json").write_text(json.dumps({"generated_at": stamp, "records": evidence,
         "warning": "Unverified search candidates from official documents; not legally applicable standards or complete results."}, ensure_ascii=False, separators=(",", ":")), encoding="utf8")
-    print(f"Generated {len(out)} navigation snippets and {len(evidence)} unverified candidate passages; status={status['status']}")
+    (DATA / "rule_candidates.json").write_text(json.dumps({"generated_at": stamp, "records": rule_candidates,
+        "notice": "Unverified numerical source mentions, not applicable development standards or a compliance decision."}, ensure_ascii=False, separators=(",", ":")), encoding="utf8")
+    print(f"Generated {len(out)} snippets, {len(evidence)} passages and {len(rule_candidates)} numerical research leads; status={status['status']}")
 
 
 if __name__ == "__main__":

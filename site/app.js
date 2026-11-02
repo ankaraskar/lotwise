@@ -33,7 +33,7 @@ const CHECKS = [
   ['Amendments / appeals','Check interim controls and appeals'],
   ['Ontario Building Code','Classify occupancy and refer for technical review']
 ];
-const state = { standards:null, index:null, evidence:null, sources:null, municipality:'toronto', candidates:[], selected:null, zone:'', manual:false, queryUrl:'', lastLookup:'', overlays:[] };
+const state = { standards:null, index:null, evidence:null, ruleCandidates:null, sources:null, municipality:'toronto', candidates:[], selected:null, zone:'', manual:false, queryUrl:'', lastLookup:'', overlays:[] };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function sourceLink(url,label='Official source ↗') {
   try { const u = new URL(url); if (u.protocol !== 'https:' || !OFFICIAL.includes(u.hostname)) return '';
@@ -55,24 +55,50 @@ async function findToronto(addr){const {number,street}=addressParts(addr), first
 async function findBrantford(addr){const {number,street}=addressParts(addr);const tokens=street.split(' ');const roadTypes=['ST','AVE','RD','DR','BLVD','CRES','CT','LANE'];const rt=roadTypes.includes(tokens[tokens.length-1])?tokens.pop():'';const name=tokens.join(' ');const where=`STREETNUM = '${sqlQuote(number)}' AND UPPER(STREETNAME) = '${sqlQuote(name)}'`;
  const query=serviceQuery(BRANTFORD_ADDRESS,{where,returnGeometry:'true',outSR:'4326'});const points=await getGIS(query);return points.filter(p=>!rt||String(p.attributes?.STREETTYPE||'').toUpperCase()===rt).slice(0,10).map(p=>({address:p.attributes?.FULLADDRESS||addr,...parsePoint(p)}));}
 function setStatus(text,type='neutral'){$('queryStatus').innerHTML=type==='error'?`<div class="search-error">${esc(text)}</div>`:`<div class="empty-state"><span class="empty-icon">⌁</span><h3>${esc(text)}</h3></div>`;}
-function drawCandidates(){const root=$('candidateList');root.innerHTML='';if(!state.candidates.length){ $('resultTag').textContent='NO MATCH';setStatus('No address candidate found. Check the address or use coordinates. A missing record does not mean that there are no zoning restrictions.','error');return; }
+function drawCandidates(){
+ const root=$('candidateList');root.innerHTML='';
+ if(!state.candidates.length){$('resultTag').textContent='NO MATCH';setStatus('No matching address was found. Check the spelling or try another address. This does not mean the property has no zoning restrictions.','error');return;}
  $('queryStatus').innerHTML='';$('resultTag').textContent=`${state.candidates.length} CANDIDATE${state.candidates.length===1?'':'S'}`;
- state.candidates.forEach((c,i)=>{const div=document.createElement('div');div.className='candidate';const z=c.error?'GIS layer error':(c.zone||'Zoning not returned');div.innerHTML=`<div class="candidate-head"><h3>${esc(c.address)}</h3><span class="tag ${c.zone?'tag-neutral':'tag-warn'}">${esc(z)}</span></div><div class="mini-label">${Number.isFinite(c.lat)?`${c.lat.toFixed(6)}, ${c.lon.toFixed(6)}`:'Coordinates unavailable'} · Official address point</div>${c.error?notice('Zoning polygon query failed: '+c.error):''}<div class="candidate-info">${sourceLink(c.query,'View official GIS query ↗')}</div><button type="button" data-candidate="${i}">${state.selected===i?'✓ Property confirmed':'Confirm this property →'}</button>`;root.appendChild(div);});
- root.querySelectorAll('[data-candidate]').forEach(b=>b.addEventListener('click',()=>chooseCandidate(Number(b.dataset.candidate))));}
-function reset(){state.candidates=[];state.selected=null;state.zone='';state.manual=false;state.overlays=[];$('candidateList').innerHTML='';$('zoneDetail').innerHTML='';$('resultTag').textContent='SEARCHING';$('standardsTag').textContent='AWAITING ZONING';$('standardsContent').textContent='Select the correct property to see available reference provisions.';snapshot('','','','');drawChecks();renderEvidence();}
+ // When there is one address point, it is selected automatically. The GIS record
+ // remains preliminary and can be inspected through Manual verification.
+ if(state.candidates.length===1&&state.selected===0){root.innerHTML='';return;}
+ state.candidates.forEach((c,i)=>{const div=document.createElement('div');div.className='candidate';const z=c.error?'GIS service error':c.zone||'Zone not returned';div.innerHTML=`<div class="candidate-head"><h3>${esc(c.address)}</h3><span class="tag">${esc(z)}</span></div>${c.error?notice('GIS error: '+c.error):''}<button type="button" data-candidate="${i}">${state.selected===i?'Selected address ✓':'Use this address →'}</button>`;root.appendChild(div);});
+ root.querySelectorAll('[data-candidate]').forEach(b=>b.addEventListener('click',()=>chooseCandidate(Number(b.dataset.candidate))));
+}
+function reset(){
+ state.candidates=[];state.selected=null;state.zone='';state.manual=false;state.overlays=[];
+ $('candidateList').innerHTML='';$('zoneDetail').innerHTML='';$('gisDiagnostics').innerHTML='';
+ $('resultTag').textContent='SEARCHING';$('standardsTag').textContent='AWAITING ZONING';
+ $('standardsContent').textContent='Select a property to load available zoning provisions.';
+ $('standardsPanel').classList.add('hidden');$('ruleCandidatesPanel').classList.add('hidden');
+ renderRuleCandidates();drawChecks();renderEvidence();
+}
 async function lookup(e){e.preventDefault();const mun=$('municipality').value, addr=$('address').value.trim();if(!addr&&!($('lat').value&&$('lon').value)){setStatus('Enter a property address or valid coordinates.','error');return;}
- state.municipality=mun;state.lastLookup=new Date().toISOString();reset();const button=$('submitBtn');button.disabled=true;button.querySelector('span').textContent='Consulting official GIS…';
+ state.municipality=mun;state.lastLookup=new Date().toISOString();reset();$('resultsWorkspace').classList.remove('hidden');$('resultsWorkspace').scrollIntoView({behavior:'smooth',block:'start'});setStatus('Searching official municipal GIS…');const button=$('submitBtn');button.disabled=true;button.querySelector('span').textContent='Consulting official GIS…';
  try {let coords=[]; if($('lat').value&&$('lon').value){coords=[{address:addr||'Manual coordinates',lat:Number($('lat').value),lon:Number($('lon').value)}];}else{coords=mun==='toronto'?await findToronto(addr):await findBrantford(addr);}
  const matching=coords.filter(p=>validPoint(p.lat,p.lon,mun));if(coords.length&&!matching.length)throw Error('The official address point was outside the expected municipality. Check your input.');
- state.candidates=await Promise.all(matching.map(async p=>{try{const result=await zonesAt(p.lat,p.lon,mun);return {...p,features:result.features,query:result.query,zone:findZone(mun,result.features)};}catch(e){return {...p,features:[],zone:'',query:'',error:e.message};}}));drawCandidates();
+ state.candidates=await Promise.all(matching.map(async p=>{try{const result=await zonesAt(p.lat,p.lon,mun);return {...p,features:result.features,query:result.query,zone:findZone(mun,result.features)};}catch(e){return {...p,features:[],zone:'',query:'',error:e.message};}}));drawCandidates();if(state.candidates.length===1&&!state.candidates[0].error){await chooseCandidate(0);}
  }catch(e){$('resultTag').textContent='QUERY FAILED';setStatus('Official GIS lookup failed: '+e.message+'. The property remains unverified; you can use coordinates or a manually entered zoning label for reference only.','error');}
- finally{button.disabled=false;button.querySelector('span').textContent='Search official GIS';}
+ finally{button.disabled=false;button.querySelector('span').textContent='Analyze';}
 }
-async function chooseCandidate(index){state.selected=index;state.manual=false;state.zone=state.candidates[index]?.zone||'';drawCandidates();drawZone();renderStandards();renderEvidence();drawChecks();await fetchOverlays(state.candidates[index]);}
-function drawZone(){const c=state.candidates[state.selected];if(!c)return;let details=(c.features||[]).map(f=>JSON.stringify(f.attributes||{},null,2)).join('\n');$('zoneDetail').innerHTML=`<div class="result-grid"><div class="result-cell"><small>Confirmed address candidate</small><strong>${esc(c.address)}</strong></div><div class="result-cell"><small>Official zoning label</small><strong>${esc(state.zone||'Not returned')}</strong></div></div>${notice('Address-point zoning intersection only. Confirm the legal parcel boundary, all applicable exceptions, overlays, amendments, appeals and building use.')}${sourceLink(c.query,'Official zoning GIS response ↗')}<details class="coord-details"><summary>View raw zoning attributes</summary><pre class="raw-data">${esc(details)}</pre></details><div id="overlayOut" class="overlay-output"><div class="mini-label">Checking related GIS layers…</div></div>`;}
-async function fetchOverlays(candidate){if(!validPoint(candidate.lat,candidate.lon,state.municipality))return;const mun=state.municipality;const layers=mun==='toronto'?[['Height overlay',TORONTO+'/9'],['Lot coverage',TORONTO+'/10'],['Policy area',TORONTO+'/13']]:[['Parking exceptions (Schedule D)',BRANTFORD+'Schedule_G_Parking/FeatureServer/0'],['Flood overlay (Schedule B)',BRANTFORD+'Schedule_B_Flood/FeatureServer/0']];
- const rows=await Promise.all(layers.map(async ([label,url])=>{let query=spatial(url,candidate.lat,candidate.lon);try{const features=await getGIS(query);return {label,query,features,kind:features.length?'found':'none'};}catch(e){return {label,query,kind:'error',error:e.message};}}));if(state.candidates[state.selected]!==candidate)return;state.overlays=rows;const node=$('overlayOut');if(!node)return;node.innerHTML='<h3 class="subheading">Related official map layers</h3>'+rows.map(row=>`<div class="reference-row"><span>${esc(row.label)}</span><strong>${row.kind==='found'?`${row.features.length} record(s)${row.label==='Height overlay' && row.features[0]?.attributes?.HT_HEIGHT != null ? ' · '+esc(row.features[0].attributes.HT_HEIGHT)+' m' : ''}`:(row.kind==='none'?'No point intersection':'Query unavailable')}</strong></div>${row.kind==='found'?`<details class="coord-details"><summary>View official attributes</summary><pre class="raw-data">${esc(JSON.stringify(row.features.map(f=>f.attributes),null,2))}</pre></details>`:''}${row.kind==='error'?`<div class="mini-label">${esc(row.error)}</div>`:''}${sourceLink(row.query,'Open layer query ↗')}`).join('')+notice('A GIS layer with zero point intersections does not establish that the regulation is inapplicable.');renderStandards();renderEvidence();drawChecks();}
-function setManual(){const z=$('manualZone').value.toUpperCase().trim();if(!/^[A-Z0-9()\s.\-]{1,32}$/.test(z)){setStatus('Enter a short zoning label such as MCC or CR SS2 (x531).','error');return;}state.selected=null;state.zone=z;state.manual=true;state.municipality=$('municipality').value;$('zoneDetail').innerHTML=notice(`Manually entered zoning label “${z}” — not verified against a property. Use for provision research only.`);renderStandards();renderEvidence();drawChecks();}
+async function chooseCandidate(index){state.selected=index;state.manual=false;state.zone=state.candidates[index]?.zone||'';drawCandidates();drawZone();$('standardsPanel').classList.remove('hidden');renderStandards();renderEvidence();drawChecks();await fetchOverlays(state.candidates[index]);}
+function drawZone(){
+ const c=state.candidates[state.selected];if(!c)return;
+ $('zoneDetail').innerHTML=`<div class="property-confirmed"><div><span class="confirmation-label">MATCHED ADDRESS POINT</span><strong>${esc(c.address)}</strong><small>${esc(state.municipality==='toronto'?'Toronto':'Brantford')} · Address-point zoning match</small></div><span class="match-indicator">✓ GIS match</span></div>`;
+ const raw=(c.features||[]).map(f=>JSON.stringify(f.attributes||{},null,2)).join('\n');
+ $('gisDiagnostics').innerHTML=`<div class="technical-intro">Municipal GIS returns raw geographic attributes for research and audit. You do not need these fields to read the zoning summary above.</div>${sourceLink(c.query,'Open official zoning query ↗')}<details class="sub-fold"><summary>Original zoning attributes (technical)</summary><pre class="raw-data">${esc(raw)}</pre></details><div id="overlayOut" class="overlay-output"><p class="muted-note">Checking other official GIS layers…</p></div>`;
+}
+async function fetchOverlays(candidate){
+ if(!validPoint(candidate.lat,candidate.lon,state.municipality))return;
+ const mun=state.municipality;
+ const layers=mun==='toronto'?[['Height overlay',TORONTO+'/9'],['Lot coverage',TORONTO+'/10'],['Policy area',TORONTO+'/13']]:[['Parking exceptions (Schedule D)',BRANTFORD+'Schedule_G_Parking/FeatureServer/0'],['Flood overlay (Schedule B)',BRANTFORD+'Schedule_B_Flood/FeatureServer/0']];
+ const rows=await Promise.all(layers.map(async ([label,url])=>{let query=spatial(url,candidate.lat,candidate.lon);try{const features=await getGIS(query);return {label,query,features,kind:features.length?'found':'none'};}catch(e){return {label,query,kind:'error',error:e.message};}}));
+ if(state.candidates[state.selected]!==candidate)return;
+ state.overlays=rows;
+ const node=$('overlayOut');if(node){node.innerHTML='<h3 class="subheading">Other official map layers</h3>'+rows.map(row=>`<div class="reference-row"><span>${esc(row.label)}</span><strong>${row.kind==='found'?`${row.features.length} match(es)${row.label==='Height overlay'&&row.features[0]?.attributes?.HT_HEIGHT!=null?' · '+esc(row.features[0].attributes.HT_HEIGHT)+' m':''}`:row.kind==='none'?'No point match':'Service unavailable'}</strong></div>${row.kind==='found'?`<details class="sub-fold"><summary>View layer fields</summary><pre class="raw-data">${esc(JSON.stringify(row.features.map(f=>f.attributes),null,2))}</pre></details>`:''}${row.kind==='error'?`<p class="muted-note">${esc(row.error)}</p>`:''}${sourceLink(row.query,'Official GIS query ↗')}`).join('')+'<p class="muted-note">No point intersection is not evidence that a rule does not apply to the lot.</p>';}
+ renderStandards();renderEvidence();drawChecks();
+}
+function setManual(){const z=$('manualZone').value.toUpperCase().trim();if(!/^[A-Z0-9()\s.\-]{1,32}$/.test(z)){setStatus('Enter a short zoning label such as MCC or CR SS2 (x531).','error');return;}state.selected=null;state.zone=z;state.manual=true;state.municipality=$('municipality').value;$('standardsPanel').classList.remove('hidden');$('zoneDetail').innerHTML=notice(`Manually entered zoning label “${z}” — not verified against a property. Use for provision research only.`);renderStandards();renderEvidence();drawChecks();}
 function useGuess(raw){
   const t=String(raw||'').trim().toLowerCase();
   if(!t)return '';
@@ -107,17 +133,8 @@ const OBC = Object.freeze({
  part9:'https://www.ontario.ca/document/2024-building-code-compendium/part-9-housing-and-small-buildings',
  current:'https://www.ontario.ca/laws/regulation/240163'
 });
-function regCard(label,value,caption,status='REVIEW',primary=false){
- return `<div class="reg-card ${primary?'primary':''}"><div class="reg-card-top"><span>${esc(label)}</span><small>${esc(status)}</small></div><div class="reg-value">${esc(value)}</div><p>${esc(caption)}</p></div>`;
-}
 function ruleRow(label,value){return `<div class="rule-row"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;}
 function numberField(id){const v=$(id)?.value?.trim();return v!==''&&v!==undefined&&Number.isFinite(Number(v))?Number(v):null;}
-function snapshot(zone,height,setbacks,parking){
- const cells=[['ZONING',zone||'—',zone?'Official GIS label; verify lot':'Not searched'],['HEIGHT',height||'—',height?'Base rule / overlay; exceptions pending':'Not established'],['SETBACKS',setbacks||'—',setbacks?'General zone rule; conditional':'Context not established'],['PARKING',parking||'—',parking?'Base rate / preliminary only':'Use and area required']];
- const root=$('snapshotGrid'); if(!root)return;
- root.innerHTML=cells.map(([name,value,note])=>`<div class="snap"><span>${esc(name)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></div>`).join('');
- $('snapshotStatus').textContent=zone?(state.manual?'MANUAL ZONE · UNVERIFIED':'OFFICIAL GIS · PRELIMINARY'):'AWAITING PROPERTY';
-}
 function torontoData(zone){
  const m=zone.match(/\bCR\s+SS([1-5])\b/i);if(!m)return null;
  const standard=m[1], exception=zone.match(/\(x(\d+)\)/i)?.[1]||'',height=state.overlays.find(x=>x.label==='Height overlay');
@@ -154,7 +171,7 @@ function parkingData(){
 function renderStandards(){
  const root=$('standardsContent'),mun=state.municipality,z=state.zone,dataset=state.standards||{};
  const parking=parkingData();
- if(!z){$('standardsTag').textContent='AWAITING ZONING';root.innerHTML='<div class="empty-compact">Select an official property result. Reference values are never interpreted as final building permissions.</div>';snapshot('','','','');return;}
+ if(!z){$('standardsTag').textContent='AWAITING ZONING';root.innerHTML='<div class="empty-compact">Select an official property result. Reference values are never interpreted as final building permissions.</div>';renderRuleCandidates();return;}
  const matched=mun==='brantford'?Object.entries(dataset[mun]||{}).find(([key])=>new RegExp('(^|[^A-Z0-9])'+key+'([^A-Z0-9]|$)','i').test(z)):null;
  const tor=mun==='toronto'?torontoData(z):null;
  $('standardsTag').textContent=state.manual?'MANUAL · UNVERIFIED':matched||tor?'BASE RULES · VERIFY EXCEPTIONS':'RESEARCH REQUIRED';
@@ -181,7 +198,7 @@ function renderStandards(){
  }else{
   height='Not indexed';setbacks='Not indexed';ruleHtml+='<div class="notice">No reviewed structured rules currently exist for this zoning label. Use the official indexed sources; do not infer that the site is unrestricted.</div>';
  }
- out+=`<div class="reg-grid">`+regCard('Maximum height',height,tor?'Height overlay / chapter 40.10 · exception review needed':matched?'Base zone, type-specific; other provisions may vary':'Official reference required',matched?'BASE / CONDITIONAL':'REVIEW',true)+regCard('Setbacks',setbacks,tor?'Front / rear / side depend on exact conditions':matched?'Front yard shown; see full yard table below':'Survey & zoning review required','CONDITIONAL')+regCard('Parking',parkText,mun==='toronto'?'Use-based rate not yet structured for this zone':parking.subtitle,parking.chosen?'BASE RATE':'REVIEW')+regCard('Coverage / FSI',mun==='toronto'?'Review overlays':'Review other rules','Not established as a final allowance by address-point query','REVIEW')+`</div>`;
+ // No duplicated 'At a Glance' cards. All rules appear only once below.
  out+=ruleHtml;
  if(mun==='brantford'){
    out+=`<div class="rule-section"><h3>Vehicle parking · Table 5.3.a (non-residential)</h3>`;
@@ -190,12 +207,12 @@ function renderStandards(){
      if(parking.count!==null&&Number.isFinite(parking.count))out+=`<div class="use-calc"><div class="mini-label">INDICATIVE ONLY · UNROUNDED</div><div class="calc-value">${esc(parking.count.toFixed(2))} spaces</div><p>${esc(parking.math)}. Accessible spaces, rounding, mixed uses, Schedule D, amendments and exceptions NOT applied.</p></div>`;
      else out+='<p class="rule-foot">Enter the required GFA and/or service bays above to calculate base-rate arithmetic. An unrounded value is not the final required count.</p>';
      if(parking.detail)out+=`<p class="rule-foot">${esc(parking.detail)}</p>`;
-   }else out+='<p class="rule-foot">Choose a parking classification in Project parameters. A zoning code alone cannot establish the parking count.</p>';
+   }else out+='<p class="rule-foot">Parking depends on the actual proposed use. <button class="inline-action" type="button" data-edit-details>Enter use and floor area</button> to check a preliminary rate.</p>';
    out+=`<p class="rule-foot">Check Schedule D, accessible parking, all amendments and proposed land-use definitions.</p>${sourceLink(dataset.brantford_parking?.source_url,'Official Brantford Section 5 ↗')}</div>`;
  }
- out+='<div class="caution"><b>Preliminary evidence only.</b> Zoning approval is not established. Confirm all site-specific exceptions, amendments, appeals, the survey and exact land-use classification.</div>';
+ out+='<div class="review-disclaimer"><strong>Preliminary research.</strong> Check site-specific exceptions, amendments, appeals, the survey and proposed use. These values do not constitute zoning approval.</div>'; 
  root.innerHTML=out;
- snapshot(z,height,setbacks,mun==='brantford'?parking.value:'Use-specific');
+ renderRuleCandidates();
 }
 function renderOBC(){
  const occ=$('obcOccupancy').value,scope=$('obcProject').value,storeys=numberField('obcStoreys'),area=numberField('obcArea');
@@ -246,10 +263,33 @@ function renderEvidence(){
       return `<article class="evidence-card"><div class="evidence-card-meta"><span>${esc(EVIDENCE_TOPICS[r.topic]||r.topic)}</span><span>${exact?'Zone mentioned':chapter?'Relevant zoning chapter':'General / contextual text'}</span></div><h3>${esc(r.title)}</h3><div class="evidence-ref">${esc(r.section_hint?'Possible section '+r.section_hint+' · ':'')}${r.format==='pdf'?'PDF viewer page '+esc(r.page):'HTML indexed text block '+esc(r.page)} · UNVERIFIED</div><p>${esc(r.excerpt)}</p><div class="evidence-link">${sourceLink(r.source_url,'Read original official passage ↗')}</div></article>`;
     }).join('') + (found.length>8?`<p class="evidence-more">${found.length-8} additional passages match. Refine the topic or search the Official Source Library.</p>`:'');
 }
-async function loadIndex(){let base='./data/';const load=async n=>{let r=await fetch(base+n,{cache:'no-store'});if(!r.ok)throw Error('Could not load '+n);return r.json();};try{const [sources,standards,index,status,evidence]=await Promise.all(['sources.json','standards.json','index.json','status.json'].map(load).concat([load('evidence.json').catch(()=>null)]));state.sources=sources;state.standards=standards;state.index=index;state.evidence=evidence;renderEvidence();$('sourceIndexStatus').textContent=status.status||'Not indexed';$('lastSync').textContent=index.generated_at?new Date(index.generated_at).toLocaleDateString():'Not indexed';$('excerptCount').textContent=String(index.snippets?.length||0);$('syncIndicator').textContent=status.status==='indexed'?'Sources indexed':status.status==='partial'?'Partial source index':'Index pending';$('sourceWarnings').textContent=status.warnings?.length?status.warnings.join(' · '):'Index excerpts are research navigation only; current GIS and amendments still require verification.';updateParking();renderLibrary();}catch(e){$('syncIndicator').textContent='Offline index';$('sourceIndexStatus').textContent='Unable to load';renderEvidence();$('sourceWarnings').textContent='Data files could not be loaded. If opened as file://, use GitHub Pages instead of double-clicking index.html.';}}
+const RULE_TOPICS = {height:'Building height', front_yard:'Front yard', rear_yard:'Rear yard',interior_side_yard:'Interior side yard',exterior_side_yard:'Exterior side yard',coverage:'Coverage / density',parking:'Parking'};
+function matchesRuleScope(r, zone, municipality){
+  if(r.jurisdiction!==municipality)return false;
+  const code=mainZone(zone);
+  if(!code)return false;
+  return r.chapter_zone_scope===code || (r.zones_mentioned||[]).includes(code);
+}
+function renderRuleCandidates(){
+  const panel=$('ruleCandidatesPanel'), root=$('ruleCandidateResults');
+  if(!panel||!root)return;
+  const zone=state.zone, all=state.ruleCandidates?.records||[];
+  if(!zone||!all.length){panel.classList.add('hidden');return;}
+  const found=all.filter(r=>matchesRuleScope(r,zone,state.municipality));
+  if(!found.length){panel.classList.add('hidden');return;}
+  // Prefer the source's explicit chapter scope and diversify topics.
+  found.sort((a,b)=>Number(b.chapter_zone_scope===mainZone(zone))-Number(a.chapter_zone_scope===mainZone(zone)));
+  const used=new Set();const chosen=[];
+  for(const r of found){if(used.has(r.topic))continue;used.add(r.topic);chosen.push(r);if(chosen.length===5)break;}
+  if(!chosen.length){panel.classList.add('hidden');return;}
+  panel.classList.remove('hidden');
+  root.innerHTML='<p class="discovery-intro">These are automated extracts from official by-laws, not confirmed property-specific requirements. Each line needs a manual check of context, exceptions and effective date.</p>'+
+    chosen.map(r=>`<div class="discovery-row"><div class="discovery-text"><strong>${esc(RULE_TOPICS[r.topic]||r.topic)}</strong><span>${esc(r.context)}</span><small>${esc(r.title)} · ${r.source_format==='pdf'?'PDF page '+esc(r.page):'Official web chapter'}${r.conditional_text_present?' · Conditional wording detected':''}</small></div><div class="discovery-actions"><b>${esc((r.values_as_written||[]).join(' · '))}</b>${sourceLink(r.source_url,'Verify in official source ↗')}</div></div>`).join('');
+}
+async function loadIndex(){let base='./data/';const load=async n=>{let r=await fetch(base+n,{cache:'no-store'});if(!r.ok)throw Error('Could not load '+n);return r.json();};try{const [sources,standards,index,status,evidence,ruleCandidates]=await Promise.all(['sources.json','standards.json','index.json','status.json'].map(load).concat([load('evidence.json').catch(()=>null),load('rule_candidates.json').catch(()=>null)]));state.sources=sources;state.standards=standards;state.index=index;state.evidence=evidence;state.ruleCandidates=ruleCandidates;renderEvidence();if(state.zone)renderStandards();else renderRuleCandidates();$('sourceIndexStatus').textContent=status.status||'Not indexed';$('lastSync').textContent=index.generated_at?new Date(index.generated_at).toLocaleDateString():'Not indexed';$('excerptCount').textContent=String(index.snippets?.length||0);$('syncIndicator').textContent=status.status==='indexed'?'Sources indexed':status.status==='partial'?'Partial source index':'Index pending';$('sourceWarnings').textContent=status.warnings?.length?status.warnings.join(' · '):'Index excerpts are research navigation only; current GIS and amendments still require verification.';updateParking();renderLibrary();}catch(e){$('syncIndicator').textContent='Offline index';renderRuleCandidates();$('sourceIndexStatus').textContent='Unable to load';renderEvidence();$('sourceWarnings').textContent='Data files could not be loaded. If opened as file://, use GitHub Pages instead of double-clicking index.html.';}}
 function updateParking(){const select=$('parkingUse'), old=select.value;select.innerHTML='<option value="">Select a use / not specified</option>'+(state.municipality==='brantford'?(state.standards?.brantford_parking?.rates||[]).map(r=>`<option value="${esc(r.id)}">${esc(r.label)}</option>`).join(''):'');if([...select.options].some(o=>o.value===old))select.value=old;else select.value=useGuess($('use').value);parkingFields();}
 let activeFilter='all';function renderLibrary(){const all=state.index?.snippets||[], query=$('docSearch').value.trim().toLowerCase();const filtered=all.filter(x=>(activeFilter==='all'||x.jurisdiction===activeFilter)&&(!query||`${x.title} ${x.excerpt}`.toLowerCase().includes(query))).slice(0,80);
  $('docResults').innerHTML=filtered.length?filtered.map(item=>`<article class="doc-card"><div class="meta">${esc(item.jurisdiction?.toUpperCase()||'OFFICIAL')} · ${item.content_type==='html'?'TEXT BLOCK':'PDF PAGE'} ${esc(item.page)}</div><h3>${esc(item.title)}</h3><p>${esc(item.excerpt)}</p>${sourceLink(item.source_url,'Open original official document ↗')}</article>`).join(''):`<div class="empty-state"><h3>${all.length?'No matching official excerpts':'No official document index yet'}</h3><p>${all.length?'Try a broader phrase; indexing is selective, not a complete by-law search.':'The first GitHub Actions run needs to download and index official documents. It may take several minutes.'}</p></div>`;}
 function nav(view){for(const el of document.querySelectorAll('[data-view]'))el.classList.toggle('active',el.dataset.view===view);for(const v of ['study','research','method'])$(v+'View').classList.toggle('hidden',v!==view);$('breadcrumb').textContent=({study:'FEASIBILITY STUDY',research:'OFFICIAL SOURCE LIBRARY',method:'METHOD & LIMITATIONS'})[view];}
-function start(){renderOBC();snapshot('','','','');document.querySelectorAll('[data-view]').forEach(e=>e.addEventListener('click',()=>nav(e.dataset.view)));$('studyForm').addEventListener('submit',lookup);$('manualBtn').addEventListener('click',setManual);$('exportBtn').addEventListener('click',()=>window.print());$('municipality').addEventListener('change',()=>{state.municipality=$('municipality').value;reset();updateParking();});$('buildingType').addEventListener('change',renderStandards);['obcOccupancy','obcProject','obcStoreys','obcArea'].forEach(id=>$(id).addEventListener('input',renderOBC));$('parkingUse').addEventListener('change',()=>{parkingFields();renderStandards();});$('use').addEventListener('change',autoParking);$('use').addEventListener('blur',autoParking);$('serviceBays').addEventListener('input',renderStandards);$('gfa').addEventListener('input',renderStandards);$('docSearch').addEventListener('input',renderLibrary);$('evidenceTopic').addEventListener('change',renderEvidence);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(n=>n.classList.toggle('active',n===b));renderLibrary();}));drawChecks();loadIndex();}
+function start(){renderOBC();document.querySelectorAll('[data-view]').forEach(e=>e.addEventListener('click',()=>nav(e.dataset.view)));$('studyForm').addEventListener('submit',lookup);$('manualBtn').addEventListener('click',setManual);$('exportBtn').addEventListener('click',()=>{const folds=[...document.querySelectorAll('#resultsWorkspace details')];const closed=folds.filter(d=>!d.open);closed.forEach(d=>d.open=true);window.print();setTimeout(()=>closed.forEach(d=>d.open=false),500);});$('verifyBtn').addEventListener('click',()=>{$('verificationDetails').open=true;$('verificationDetails').scrollIntoView({behavior:'smooth',block:'start'});});document.querySelectorAll('[data-home]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();nav('study');window.scrollTo({top:0,behavior:'smooth'});$('address').focus();}));$('municipality').addEventListener('change',()=>{state.municipality=$('municipality').value;reset();updateParking();});$('buildingType').addEventListener('change',renderStandards);['obcOccupancy','obcProject','obcStoreys','obcArea'].forEach(id=>$(id).addEventListener('input',renderOBC));$('parkingUse').addEventListener('change',()=>{parkingFields();renderStandards();});document.addEventListener('click',e=>{if(e.target.closest('[data-edit-details]')){$('projectOptions').open=true;$('projectPanel').scrollIntoView({behavior:'smooth',block:'start'});$('use').focus();}});$('use').addEventListener('change',autoParking);$('use').addEventListener('blur',autoParking);$('serviceBays').addEventListener('input',renderStandards);$('gfa').addEventListener('input',renderStandards);$('docSearch').addEventListener('input',renderLibrary);$('evidenceTopic').addEventListener('change',renderEvidence);document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{activeFilter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(n=>n.classList.toggle('active',n===b));renderLibrary();}));drawChecks();loadIndex();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
